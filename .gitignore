@@ -5,3 +5,5 @@ faces/
 .idea/
 
 face_recognition/yml_data/
+
+face_recognition/video/

@@ -12,7 +12,7 @@ def most_count_dict(counted_dict):
             nick_name = str(key)
     return nick_name
 
-def FR_model():
+def FR_model(path):
     labels = ["chan_youn", "hoi_eun", "nam_kyung", "seong_bin"]  # 라벨 지정
     nick_name_dict = {}
 
@@ -20,15 +20,18 @@ def FR_model():
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     recognizer.read("face_recognition/yml_data/face-trainner.yml")  # 저장된 값 가져오기
 
-    cap = cv2.VideoCapture(0)  # 카메라 실행
+    cap = cv2.VideoCapture(path)  # 카메라 실행
 
     cnt = 0
     cnt2 = 0
-    if cap.isOpened() == False:  # 카메라 생성 확인
-        exit()
 
-    while True:
+    while cap.isOpened():
+
         ret, img = cap.read()  # 현재 이미지 가져오기
+
+        if not ret:
+            break
+
         img_temp = cv2.flip(img,1)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # 흑백으로 변환
         faces = face_cascade.detectMultiScale(gray, scaleFactor=1.5, minNeighbors=5)  # 얼굴 인식
@@ -73,7 +76,7 @@ def FR_model():
     fps = cap.get(cv2.CAP_PROP_FPS)
     print('FPS:', fps)
 
-    print(cnt2, cnt, str(int(cnt2/cnt * 100)) + '%')
+    # print(cnt2, cnt, str(int(cnt2/cnt * 100)) + '%')
     # 전체 종료
     cap.release()
     cv2.destroyAllWindows()
