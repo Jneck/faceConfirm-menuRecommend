@@ -21,5 +21,7 @@ def create_app():
         # 3. 결과값 반환
         # return jsonify({'nickname': nickname})
         print(nickname)
+
+        ## 찬영아 test 해보께
         return nickname
     return app
