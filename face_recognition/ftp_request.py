@@ -11,9 +11,9 @@ def request_video(filename):
 
     ftp.cwd("/test01")
 
-    fd = open("./" + filename, 'wb')
+    fd = open("face_recognition/data/video/" + filename, 'wb')
 
     ftp.retrbinary("RETR " + filename, fd.write)
 
     fd.close()
-    return None
+    return "face_recognition/data/video/" + filename
