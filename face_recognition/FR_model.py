@@ -18,7 +18,7 @@ def FR_model(path):
 
     face_cascade = cv2.CascadeClassifier('face_recognition/haarcascade_frontalface_default.xml')
     recognizer = cv2.face.LBPHFaceRecognizer_create()
-    recognizer.read("face_recognition/yml_data/face-trainner.yml")  # 저장된 값 가져오기
+    recognizer.read("face_recognition/data/yml_data/face-trainner.yml")  # 저장된 값 가져오기
 
     cap = cv2.VideoCapture(path)  # 카메라 실행
 
@@ -68,10 +68,6 @@ def FR_model(path):
         cv2.imshow('Preview', img_temp)  # 이미지 보여주기
         if cv2.waitKey(10) >= 0:  # 키 입력 대기, 10ms
             break
-
-    print('Frame width:', int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)))
-    print('Frame height:', int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-    print('Frame count:', int(cap.get(cv2.CAP_PROP_FRAME_COUNT)))
 
     fps = cap.get(cv2.CAP_PROP_FPS)
     print('FPS:', fps)
