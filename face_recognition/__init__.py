@@ -45,7 +45,7 @@ def create_app():
     def recommend_burger_by_face():
         # 요청 받은 사용자 얼굴을 모델 돌려서 얼굴에 대한 예측 값으로 버거 추천
         data = pd.DataFrame.from_dict(dict(request.json)['result'])
-        return jsonify({'burger_id_list': resnet_recommend(data,
+        return jsonify({'burger_id': resnet_recommend(data,
                                                            './face_recognition/data/img/user_img.jpg')})
 
     return app
