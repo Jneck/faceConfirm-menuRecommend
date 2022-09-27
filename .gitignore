@@ -1,9 +1,3 @@
-data/
-
-faces/
+face_recognition/data/
 
 .idea/
-
-face_recognition/yml_data/
-
-face_recognition/video/
