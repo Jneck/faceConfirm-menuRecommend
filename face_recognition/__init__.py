@@ -1,3 +1,4 @@
+import pandas as pd
 from flask import Flask, request, jsonify
 
 
@@ -9,6 +10,7 @@ def create_app():
     from .cut_image import cut_image
     from .rec_by_order import recommend_burger
     from .rec_by_order import recommend_side_menu
+    from .resnet_recommend import resnet_recommend
 
     @app.route('/face/recognition', methods=['POST'])
     def index():
@@ -27,16 +29,23 @@ def create_app():
         print(nickname)
         return jsonify({'result' : 'True', 'nickname': nickname})
 
-    @app.route('/rec_burger_by_order', methods=['GET'])
+    @app.route('/rec_burger_by_order', methods=['POST'])
     def recommend_buger():
         # 요청 받은 1년치 주문 목록에서 오늘 주문한 user_id들의 burger_id_list 추천
         # 코사인 유사도 사용.
         return jsonify({'burger_id_list': recommend_burger(dict(request.json))})
 
-    @app.route('/rec_side_menu_by_order_buger', methods=['GET'])
+    @app.route('/rec_side_menu_by_order_buger', methods=['POST'])
     def recommend_side():
-        # 요청받은 user_id와 최근 주문 메뉴를 기반으로 사이드메뉴 추천
+        # 요청 받은 user_id와 최근 주문 메뉴를 기반으로 사이드메뉴 추천
         # 연관분석 사용
         return jsonify({'side_menu_id_list': recommend_side_menu(dict(request.json))})
+
+    @app.route('/rec_burger_by_face', methods=['POST'])
+    def recommend_burger_by_face():
+        # 요청 받은 사용자 얼굴을 모델 돌려서 얼굴에 대한 예측 값으로 버거 추천
+        data = pd.DataFrame.from_dict(dict(request.json)['result'])
+        return jsonify({'burger_id_list': resnet_recommend(data,
+                                                           './face_recognition/data/img/user_img.jpg')})
 
     return app
