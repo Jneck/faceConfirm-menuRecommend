@@ -10,10 +10,10 @@ def create_app():
     from .rec_by_order import recommend_burger
     from .rec_by_order import recommend_side_menu
 
-    @app.route('/')
+    @app.route('/face/recognition', methods=['POST'])
     def index():
         # 1. FTP서버에 동영상 요청해서 받기 요청
-        video_path = request_video('blob.mp4')
+        video_path = request_video(dict(request.json)['filename'])
         if not video_path:
             return jsonify({'result' : 'False', 'reason' : 'ftp_request_fail'})
 
@@ -21,7 +21,7 @@ def create_app():
         cut_image(video_path)
 
         # 3. 모델 돌리기
-        nickname = FR_model('face_recognition/video/blob.mp4')
+        nickname = FR_model('face_recognition/data/video/blob.mp4')
 
         # 3. 결과값 반환
         print(nickname)
