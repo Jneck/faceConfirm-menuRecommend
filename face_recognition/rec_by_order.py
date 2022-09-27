@@ -11,33 +11,33 @@ from datetime import datetime
 def recommend_burger(data):
     # 요청 받은 데이터에서 유저당 주문한 메뉴아이디를 기반으로 카운팅하여 그룹화.
     request_df = pd.DataFrame.from_dict(data['one_year_order_list'])
-    counting_by_user_id_and_menu_id = request_df.groupby(['user_id', 'menu_id']).size().reset_index(name='counts')
+    counting_by_user_id_and_menu_id = request_df.groupby(['member_id', 'burger_id']).size().reset_index(name='counts')
 
     d_list = []
     for x, y in counting_by_user_id_and_menu_id.iterrows():
-        d_list.append([y['user_id'], y['menu_id'], y['counts']])
+        d_list.append([y['member_id'], y['burger_id'], y['counts']])
 
-    counting_df_by_user_id_and_menu_id = pd.DataFrame(d_list, columns=['user_id', 'menu_id', 'counts'])
+    counting_df_by_user_id_and_menu_id = pd.DataFrame(d_list, columns=['member_id', 'burger_id', 'counts'])
 
     # 정규화
-    mean_rating_user = counting_df_by_user_id_and_menu_id.groupby('user_id')['counts'].mean().reset_index(
+    mean_rating_user = counting_df_by_user_id_and_menu_id.groupby('member_id')['counts'].mean().reset_index(
         name='Mean-Rating-User')
-    mean_data = pd.merge(counting_df_by_user_id_and_menu_id, mean_rating_user, on='user_id')
+    mean_data = pd.merge(counting_df_by_user_id_and_menu_id, mean_rating_user, on='member_id')
     mean_data['Diff'] = mean_data['counts'] - mean_data['Mean-Rating-User']
     mean_data['Square'] = (mean_data['Diff']) ** 2
-    norm_data = mean_data.groupby('user_id')['Square'].sum().reset_index(name='Mean-Square')
+    norm_data = mean_data.groupby('member_id')['Square'].sum().reset_index(name='Mean-Square')
     norm_data['Root-Mean-Square'] = np.sqrt(norm_data['Mean-Square'])
-    mean_data = pd.merge(norm_data, mean_data, on='user_id')
+    mean_data = pd.merge(norm_data, mean_data, on='member_id')
     mean_data['Norm-Rating'] = mean_data['Diff'] / (mean_data['Root-Mean-Square'])
     mean_data['Norm-Rating'] = mean_data['Norm-Rating'].fillna(0)
     max_rating = mean_data.sort_values('Norm-Rating')['Norm-Rating'].to_list()[-1]
     min_rating = mean_data.sort_values('Norm-Rating')['Norm-Rating'].to_list()[0]
     mean_data['Norm-Rating'] = 5 * (mean_data['Norm-Rating'] - min_rating) / (max_rating - min_rating)
     mean_data['Norm-Rating'] = np.ceil(mean_data['Norm-Rating']).astype(int)
-    norm_ratings = mean_data[['user_id', 'menu_id', 'Norm-Rating']]
+    norm_ratings = mean_data[['member_id', 'burger_id', 'Norm-Rating']]
     mean_data.sort_values('Norm-Rating')
 
-    burger_user = norm_ratings.pivot_table('Norm-Rating', index='user_id', columns='menu_id')
+    burger_user = norm_ratings.pivot_table('Norm-Rating', index='member_id', columns='burger_id')
     burger_user.fillna(0, inplace=True)
 
     # 유저와 유저 간의 유사도
@@ -46,7 +46,7 @@ def recommend_burger(data):
 
     # 당일 주문한 user_id list
     today_date = datetime.today().strftime('%Y-%m-%d')
-    today_order_user_id_list = request_df['user_id'][request_df['order_date'] == str(today_date)].to_list()
+    today_order_user_id_list = request_df['member_id'][request_df['order_date'] == str(today_date)].to_list()
 
     user_id_rec_burger_id = {}
     for user_id in today_order_user_id_list:
@@ -63,13 +63,13 @@ def recommend_burger(data):
             top_3_list_to_str.append(str(s))
 
         # 자신이 먹은 메뉴 제외한 메뉴 리스트 리턴.
-        my_order_buger_id_list = norm_ratings['menu_id'][norm_ratings['user_id'] == int(user_id)].to_list()
+        my_order_buger_id_list = norm_ratings['burger_id'][norm_ratings['member_id'] == int(user_id)].to_list()
         print(my_order_buger_id_list)
 
         # 유사도가 높은 유저기반으로 버거 리스트 만들기
         burger_list = []
         for i in top_3_list_to_str:
-            burger_list.append(norm_ratings['menu_id'][norm_ratings['user_id'] == int(i)].to_list())
+            burger_list.append(norm_ratings['burger_id'][norm_ratings['member_id'] == int(i)].to_list())
         burger_list_final = sum(burger_list, [])
         burger_list_final = list(set(burger_list_final) - set(my_order_buger_id_list))[:3]
 
@@ -84,20 +84,20 @@ def recommend_side_menu(data):
     anal_df = request_df.reset_index(drop=True)
     anal_df['Index'] = anal_df.index
 
-    # 늘먹던대로 user_id, "always_menu = menu_name" ,"always_id = menu_id"
+    # 늘먹던대로 user_id, "always_menu = menu_name" ,"always_id = burger_id"
     request_always_df = pd.DataFrame.from_dict(data['always'])
 
     cnt = len(anal_df['Index'].unique())
 
     # 당일 주문한 user_id list
     today_date = datetime.today().strftime('%Y-%m-%d')
-    today_order_user_id_list = request_df['user_id'][request_df['order_date'] == str(today_date)].to_list()
+    today_order_user_id_list = request_df['member_id'][request_df['order_date'] == str(today_date)].to_list()
 
 
     # 연관분석을 위한 배열 생성
     df_tmp_arr = [[] for i in range(cnt + 1)]  # 빈 리스트 제작
     num = 0
-    for i, j in zip(anal_df['order_menu'], anal_df['side_menu']):
+    for i, j in zip(anal_df['burger_menu'], anal_df['side_name']):
         df_tmp_arr[anal_df['Index'][num]].append(i)
         df_tmp_arr[anal_df['Index'][num]].append(j)
         num += 1
@@ -119,7 +119,7 @@ def recommend_side_menu(data):
     # user가 최근 먹은 버거 기반으로 사이드 메뉴 추천  => 최근 먹은 버거 이름 필요!
     user_id_rec_side_menu_id = {}
     for user_id in today_order_user_id_list:
-        menu_name = request_always_df[request_always_df['user_id'] == user_id]['always_menu'].iloc[0]
+        menu_name = request_always_df[request_always_df['member_id'] == user_id]['always_menu'].iloc[0]
 
         frequent_itemsets_by_menu_name = frequent_itemsets[frequent_itemsets['itemsets'].apply(lambda x: menu_name in x)]
         frequent_itemsets_length_2 = frequent_itemsets_by_menu_name[frequent_itemsets_by_menu_name['length'] == 2]  # 길이가 2개인 세트
@@ -137,7 +137,7 @@ def recommend_side_menu(data):
         rec_side_id_list = []
         for i in rec_side_menu_list:
             # print(i)
-            tmp.append(anal_df['side_id'][anal_df['side_menu'] == i].to_list())
+            tmp.append(anal_df['side_id'][anal_df['side_name'] == i].to_list())
             rec_side_id_list = sum(tmp, [])
             rec_side_id_list = list(set(rec_side_id_list))
         user_id_rec_side_menu_id[user_id] = random.sample(rec_side_id_list,3) # 사이드 메뉴중 랜덤 3개 추천

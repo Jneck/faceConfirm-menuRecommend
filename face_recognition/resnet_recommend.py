@@ -42,8 +42,8 @@ def resnet_recommend(data, path):
         print(class_names[preds[0]])
 
     # 데이터 전처리하기
-    data_total = data[(data['burger_calories'] != 0) & (~data['burger_name'].str.contains('세트')) & (~data['burger_name'].str.contains('주니어')) & (
-        ~data['burger_name'].str.contains('팩'))]
+    data_total = data[(data['burger_calories'] != 0) & (~data['burger_menu'].str.contains('세트')) & (~data['burger_menu'].str.contains('주니어')) & (
+        ~data['burger_menu'].str.contains('팩'))]
 
     # resent 결과가 "20대 여자" 일 때
     if class_names[preds[0]] == '20대 여자':
